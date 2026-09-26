@@ -2,6 +2,44 @@ let chats = [];
 let editingId = null;
 let replyTo = null;
 
+function checkVerification() {
+    const userData = localStorage.getItem('chatUserData');
+    const overlay = document.getElementById('verifyOverlay');
+    const chatMain = document.getElementById('chatMain');
+    if (userData) {
+        if (overlay) overlay.style.display = 'none';
+        if (chatMain) chatMain.style.display = '';
+        loadChats();
+    } else {
+        if (overlay) overlay.style.display = 'flex';
+        if (chatMain) chatMain.style.display = 'none';
+        setupVerifyForm();
+    }
+}
+
+function setupVerifyForm() {
+    const form = document.getElementById('verifyForm');
+    if (!form) return;
+    form.onsubmit = function (e) {
+        e.preventDefault();
+        const name = document.getElementById('vName').value.trim();
+        const mobile = document.getElementById('vMobile').value.trim();
+        const password = document.getElementById('vPassword').value.trim();
+        const email = document.getElementById('vEmail').value.trim();
+        if (!name || !mobile || !password || !email) {
+            alert('Please fill all fields');
+            return;
+        }
+        const userData = { name: name, mobile: mobile, password: password, email: email };
+        localStorage.setItem('chatUserData', JSON.stringify(userData));
+        const overlay = document.getElementById('verifyOverlay');
+        const chatMain = document.getElementById('chatMain');
+        if (overlay) overlay.style.display = 'none';
+        if (chatMain) chatMain.style.display = '';
+        loadChats();
+    };
+}
+
 function loadChats() {
     const box = document.getElementById('chatMessages');
     if (!box) return;
@@ -228,5 +266,5 @@ function escapeHtml(text) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    loadChats();
+    checkVerification();
 });
