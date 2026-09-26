@@ -532,6 +532,18 @@ if (installBtn) {
     window.addEventListener('beforeinstallprompt', function (e) {
         e.preventDefault();
         deferredPrompt = e;
+        console.log('Install prompt available');
+        setTimeout(function () {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(function (choiceResult) {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }, 3000);
     });
     installBtn.addEventListener('click', function () {
         if (deferredPrompt) {
