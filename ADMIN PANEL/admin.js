@@ -113,8 +113,8 @@ function loadDetail() {
             html += '<div class="detail-image-section">';
             html += '<h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Payment Image</h4>';
             html += '<div class="image-preview">';
-            html += '<img src="' + req.image + '" alt="Payment">';
-            html += '<button class="view-btn" onclick="openImageView(\'' + req.image + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> View</button>';
+            html += '<img class="lazy-image" data-src="' + req.image + '" alt="Payment" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'%3E%3Crect fill=%27%23f0f0f0\' width=\'200\' height=\'200\'/%3E%3Ctext x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23999\' font-size=\'12\'%3ETap to load image%3C/text%3E%3C/svg%3E">';
+            html += '<button class="view-btn" onclick="openImageView(\'' + req.image + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> View Full</button>';
             html += '</div>';
             html += '</div>';
         }
@@ -123,6 +123,17 @@ function loadDetail() {
         html += '</div>';
 
         el.innerHTML = html;
+
+        // Lazy load image on click
+        const lazyImg = el.querySelector('.lazy-image');
+        if (lazyImg) {
+            lazyImg.addEventListener('click', function () {
+                if (this.dataset.src && this.src !== this.dataset.src) {
+                    this.src = this.dataset.src;
+                    this.classList.add('loaded');
+                }
+            });
+        }
     }).catch(function (error) {
         console.error('ADMIN loadDetail error:', error);
         if (el) el.innerHTML = '<p class="no-users">Error loading details: ' + error.message + '</p>';
@@ -205,12 +216,14 @@ function escapeAttr(text) {
     return (text || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
-// CHAT USER LIST
+// CHAT USER LIST - optimized: limit complaints, skip full chat scan
 function loadChatUsers() {
     const listEl = document.getElementById('chatUserList');
     if (!listEl) return;
 
-    db.ref('complaints').once('value').then(function (snapshot) {
+    listEl.innerHTML = '<p class="no-users"><span class="loading-spinner"></span> Loading...</p>';
+
+    db.ref('complaints').limitToLast(100).once('value').then(function (snapshot) {
         const uniqueUsers = {};
         snapshot.forEach(function (child) {
             const r = child.val();
@@ -220,12 +233,8 @@ function loadChatUsers() {
             }
         });
 
-        db.ref('chats').once('value').then(function (chatSnap) {
-            let lastChatTime = '';
-            let lastChatSender = '';
-            chatSnap.forEach(function (child) {
-                const msg = child.val();
-                lastChatTime = msg.time;
+        // Skip full chat scan - just use complaint times for last activity
+        const allUsers = Object.values(uniqueUsers);
                 lastChatSender = msg.sender;
             });
 
@@ -260,7 +269,6 @@ function loadChatUsers() {
             });
 
             listEl.innerHTML = html;
-        });
     }).catch(function (error) {
         console.error('ADMIN loadChatUsers error:', error);
         if (listEl) {
@@ -298,7 +306,9 @@ function loadAdminMessages() {
     const box = document.getElementById('adminChatMessages');
     if (!box) return;
 
-    db.ref('chats').on('value', function (snapshot) {
+    box.innerHTML = '<div class="chat-welcome"><span class="loading-spinner"></span> Loading...</div>';
+
+    db.ref('chats').limitToLast(30).once('value').then(function (snapshot) {
         const messages = [];
         snapshot.forEach(function (child) {
             const data = child.val();
@@ -316,7 +326,7 @@ function loadAdminMessages() {
             const isAdmin = msg.sender === 'admin';
             let content = '';
             if (msg.image) {
-                content = '<div class="msg-image-wrapper" onclick="adminViewImage(\'' + msg.image + '\')"><img class="msg-image" src="' + msg.image + '" alt="Image"></div>';
+                content = '<div class="msg-image-wrapper" onclick="adminViewImage(\'' + msg.image + '\')"><img class="lazy-image" data-src="' + msg.image + '" alt="Image" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'%3E%3Crect fill=%27%23f0f0f0\' width=\'200\' height=\'200\'/%3E%3Ctext x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23999\' font-size=\'12\'%3ETap to load%3C/text%3E%3C/svg%3E"></div>';
                 if (msg.text) content += '<div class="msg-text">' + escapeHtml(msg.text) + '</div>';
             } else {
                 content = '<div class="msg-text">' + escapeHtml(msg.text || '') + '</div>';
@@ -345,6 +355,16 @@ function loadAdminMessages() {
 
         box.innerHTML = html;
         box.scrollTop = box.scrollHeight;
+
+        // Lazy load images on click
+        box.querySelectorAll('.lazy-image').forEach(function (img) {
+            img.addEventListener('click', function () {
+                if (this.dataset.src && this.src !== this.dataset.src) {
+                    this.src = this.dataset.src;
+                    this.classList.add('loaded');
+                }
+            });
+        });
     });
 }
 
