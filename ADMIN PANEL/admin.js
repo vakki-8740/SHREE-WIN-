@@ -1,7 +1,18 @@
+const firebaseConfig = {
+    apiKey: "AIzaSyBtQn3LBwNWWS-RQCJjVZ9W0X_nKTYEtn4",
+    authDomain: "projectjas-88e80.firebaseapp.com",
+    databaseURL: "https://projectjas-88e80-default-rtdb.firebaseio.com",
+    projectId: "projectjas-88e80",
+    storageBucket: "projectjas-88e80.firebasestorage.app",
+    messagingSenderId: "634145882024",
+    appId: "1:634145882024:web:62755bec1f054e109ea79d"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 // HOME PAGE
 function loadHome() {
     console.log('ADMIN: loadHome called');
-    if (typeof db === 'undefined') { console.error('db not defined - firebase-config.js may not have loaded'); return; }
     const totalEl = document.getElementById('totalRequests');
     const todayEl = document.getElementById('todayRequests');
     const listEl = document.getElementById('usersList');
@@ -194,7 +205,6 @@ function escapeAttr(text) {
 function loadChatUsers() {
     const listEl = document.getElementById('chatUserList');
     if (!listEl) return;
-    if (typeof db === 'undefined') { console.error('db not defined'); return; }
 
     db.ref('complaints').once('value').then(function (snapshot) {
         const uniqueUsers = {};
