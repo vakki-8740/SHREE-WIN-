@@ -532,22 +532,37 @@ if (installBtn) {
     window.addEventListener('beforeinstallprompt', function (e) {
         e.preventDefault();
         deferredPrompt = e;
-        installBtn.style.display = 'flex';
     });
     installBtn.addEventListener('click', function () {
-        if (!deferredPrompt) return;
-        installBtn.style.display = 'none';
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(function (choiceResult) {
-            if (choiceResult.outcome === 'accepted') {
-                console.log('User accepted the install prompt');
-            }
-            deferredPrompt = null;
-        });
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(function (choiceResult) {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                }
+                deferredPrompt = null;
+            });
+        } else {
+            showInstallInstructions();
+        }
     });
     window.addEventListener('appinstalled', function () {
         installBtn.style.display = 'none';
         deferredPrompt = null;
         console.log('PWA installed');
     });
+}
+
+function showInstallInstructions() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    let msg = '📱 Install Admin Panel as App:\n\n';
+    if (isIOS) {
+        msg += 'iOS (Safari):\n1. Tap the Share button (□↑)\n2. Scroll down → "Add to Home Screen"\n3. Tap "Add"';
+    } else if (isAndroid) {
+        msg += 'Android (Chrome):\n1. Tap the 3-dot menu (⋮)\n2. Select "Add to Home screen" or "Install app"\n3. Tap "Install"';
+    } else {
+        msg += 'Desktop (Chrome/Edge):\n1. Click the install icon in address bar (⬇)\n2. Or use menu → "Install Admin Panel..."';
+    }
+    alert(msg);
 }
