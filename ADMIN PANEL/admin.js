@@ -10,7 +10,7 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// HOME PAGE
+// HOME PAGE - optimized: load only latest 50, no images in list
 function loadHome() {
     console.log('ADMIN: loadHome called');
     const totalEl = document.getElementById('totalRequests');
@@ -18,7 +18,11 @@ function loadHome() {
     const listEl = document.getElementById('usersList');
     if (!totalEl) return;
 
-    db.ref('complaints').on('value', function (snapshot) {
+    // Show loading
+    listEl.innerHTML = '<p class="no-users"><span class="loading-spinner"></span> Loading...</p>';
+
+    // Load only latest 50 for fast initial load
+    db.ref('complaints').limitToLast(50).once('value').then(function (snapshot) {
         const requests = [];
         snapshot.forEach(function (child) {
             const data = child.val();
@@ -27,7 +31,7 @@ function loadHome() {
         });
         requests.reverse();
 
-        console.log('ADMIN loadHome: total complaints =', requests.length, requests);
+        console.log('ADMIN loadHome: loaded', requests.length, 'complaints');
 
         totalEl.textContent = requests.length;
 
