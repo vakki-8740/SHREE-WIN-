@@ -1,5 +1,7 @@
 // HOME PAGE
 function loadHome() {
+    console.log('ADMIN: loadHome called');
+    if (typeof db === 'undefined') { console.error('db not defined - firebase-config.js may not have loaded'); return; }
     const totalEl = document.getElementById('totalRequests');
     const todayEl = document.getElementById('todayRequests');
     const listEl = document.getElementById('usersList');
@@ -13,6 +15,8 @@ function loadHome() {
             requests.push(data);
         });
         requests.reverse();
+
+        console.log('ADMIN loadHome: total complaints =', requests.length, requests);
 
         totalEl.textContent = requests.length;
 
@@ -43,6 +47,11 @@ function loadHome() {
         });
 
         listEl.innerHTML = html;
+    }, function (error) {
+        console.error('ADMIN complaints listener error:', error);
+        if (listEl) {
+            listEl.innerHTML = '<p class="no-users">Error loading requests: ' + error.message + '</p>';
+        }
     });
 }
 
@@ -99,6 +108,9 @@ function loadDetail() {
         html += '</div>';
 
         el.innerHTML = html;
+    }).catch(function (error) {
+        console.error('ADMIN loadDetail error:', error);
+        if (el) el.innerHTML = '<p class="no-users">Error loading details: ' + error.message + '</p>';
     });
 }
 
@@ -182,6 +194,7 @@ function escapeAttr(text) {
 function loadChatUsers() {
     const listEl = document.getElementById('chatUserList');
     if (!listEl) return;
+    if (typeof db === 'undefined') { console.error('db not defined'); return; }
 
     db.ref('complaints').once('value').then(function (snapshot) {
         const uniqueUsers = {};
@@ -234,6 +247,11 @@ function loadChatUsers() {
 
             listEl.innerHTML = html;
         });
+    }).catch(function (error) {
+        console.error('ADMIN loadChatUsers error:', error);
+        if (listEl) {
+            listEl.innerHTML = '<p class="no-users">Error loading users: ' + error.message + '</p>';
+        }
     });
 }
 
