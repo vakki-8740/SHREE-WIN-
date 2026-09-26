@@ -93,27 +93,6 @@ function sendMessage() {
     input.value = '';
     replyTo = null;
     document.getElementById('chatInput').placeholder = 'Type a message...';
-
-    showTyping();
-    setTimeout(function () {
-        hideTyping();
-        const replies = [
-            "Thanks for contacting us! Our support team will assist you soon.",
-            "Your request has been received. We are working on it.",
-            "Hello! How can we help you today?",
-            "We have noted your message. Please wait for our response.",
-            "Our team will respond within 30 minutes."
-        ];
-        const reply = replies[Math.floor(Math.random() * replies.length)];
-        pushChat({
-            text: reply,
-            sender: 'support',
-            replyTo: null,
-            date: new Date().toLocaleDateString('en-GB'),
-            time: new Date().toLocaleTimeString('en-GB'),
-            createdAt: Date.now()
-        });
-    }, 1500);
 }
 
 function sendImage() {
@@ -164,16 +143,6 @@ function formatSize(bytes) {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / 1048576).toFixed(1) + ' MB';
-}
-
-function showTyping() {
-    const t = document.getElementById('typingIndicator');
-    if (t) t.style.display = 'flex';
-}
-
-function hideTyping() {
-    const t = document.getElementById('typingIndicator');
-    if (t) t.style.display = 'none';
 }
 
 function replyChat(index) {
