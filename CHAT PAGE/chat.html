@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONLINE CHAT</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <!-- PRELOADER -->
+    <div class="preloader" id="preloader">
+        <img src="../LOGO/images__1_-removebg-preview.png" alt="Logo">
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container">
+            <button class="menu-btn" id="menuBtn" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">
+                <a href="../index.html">
+                    <img src="../LOGO/images__1_-removebg-preview.png" alt="Logo">
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CHAT APP -->
+    <main class="chat-main">
+        <div class="chat-app">
+
+            <!-- CHAT HEADER -->
+            <div class="chat-app-header">
+                <div class="chat-avatar">SW</div>
+                <div class="chat-user-info">
+                    <h3>SHREE WIN SUPPORT</h3>
+                    <span class="online-status">● Online</span>
+                </div>
+            </div>
+
+            <!-- MESSAGES AREA -->
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-welcome">
+                    <p>Welcome to SHREE WIN GAME Support Chat</p>
+                    <span>Send a message to start the conversation</span>
+                </div>
+            </div>
+
+            <!-- TYPING INDICATOR -->
+            <div class="typing-indicator" id="typingIndicator" style="display:none">
+                <span></span><span></span><span></span>
+            </div>
+
+            <!-- CHAT INPUT BAR -->
+            <div class="chat-input-bar">
+                <label class="input-action-btn" title="Send Image">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    <input type="file" id="imageInput" accept="image/*" onchange="sendImage()" style="display:none">
+                </label>
+                <label class="input-action-btn" title="Send PDF/Files">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.zip,.rar" onchange="sendFile()" style="display:none">
+                </label>
+                <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendMessage()">
+                <button class="send-btn" onclick="sendMessage()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- CHAT DETAIL POPUP -->
+    <div class="popup-overlay" id="chatPopup">
+        <div class="popup-box chat-popup-box">
+            <h3>MESSAGE DETAILS</h3>
+            <div class="chat-detail-content" id="chatDetailContent"></div>
+            <button class="btn" onclick="closeChatPopup()">Close</button>
+        </div>
+    </div>
+
+    <!-- EDIT POPUP -->
+    <div class="popup-overlay" id="editPopup">
+        <div class="popup-box chat-popup-box">
+            <h3>EDIT MESSAGE</h3>
+            <input type="text" class="edit-input" id="editInput" placeholder="Edit your message..." onkeypress="if(event.key==='Enter')saveEdit()">
+            <div class="popup-actions">
+                <button class="btn" onclick="saveEdit()">Save</button>
+                <button class="btn btn-secondary" onclick="closeEditPopup()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script src="../firebase-config.js"></script>
+    <script src="../script.js"></script>
+    <script src="chat.js"></script>
+</body>
+</html>
