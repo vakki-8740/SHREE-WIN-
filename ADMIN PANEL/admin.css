@@ -1170,3 +1170,36 @@ body {
         padding: 12px;
     }
 }
+
+/* ====== INSTALL BUTTON ====== */
+
+.install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #9C8DE8;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.install-btn:hover {
+    background: #8477d4;
+    transform: translateY(-1px);
+}
+
+.install-btn:active {
+    transform: scale(0.98);
+}
+
+@media (display-mode: standalone) {
+    .install-btn {
+        display: none !important;
+    }
+}

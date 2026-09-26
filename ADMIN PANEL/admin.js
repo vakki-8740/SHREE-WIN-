@@ -525,3 +525,29 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
+
+let deferredPrompt = null;
+const installBtn = document.getElementById('installBtn');
+if (installBtn) {
+    window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'flex';
+    });
+    installBtn.addEventListener('click', function () {
+        if (!deferredPrompt) return;
+        installBtn.style.display = 'none';
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function (choiceResult) {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+            }
+            deferredPrompt = null;
+        });
+    });
+    window.addEventListener('appinstalled', function () {
+        installBtn.style.display = 'none';
+        deferredPrompt = null;
+        console.log('PWA installed');
+    });
+}
