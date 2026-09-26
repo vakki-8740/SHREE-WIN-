@@ -287,6 +287,7 @@ function loadChatRoom() {
     }
 
     loadAdminMessages();
+    document.getElementById('adminChatInput').placeholder = 'Type a message...';
 }
 
 function loadAdminMessages() {
@@ -311,19 +312,29 @@ function loadAdminMessages() {
             const isAdmin = msg.sender === 'admin';
             let content = '';
             if (msg.image) {
-                content = '<img class="msg-image" src="' + msg.image + '" alt="Image">';
+                content = '<div class="msg-image-wrapper" onclick="adminViewImage(\'' + msg.image + '\')"><img class="msg-image" src="' + msg.image + '" alt="Image"></div>';
                 if (msg.text) content += '<div class="msg-text">' + escapeHtml(msg.text) + '</div>';
             } else {
-                content = '<div class="msg-text">' + escapeHtml(msg.text) + '</div>';
+                content = '<div class="msg-text">' + escapeHtml(msg.text || '') + '</div>';
             }
 
-            html += '<div class="msg-row ' + (isAdmin ? 'right' : 'left') + '">' +
-                '<div class="msg-bubble ' + (isAdmin ? 'msg-admin' : 'msg-user') + '">' +
+            if (msg.replyTo) {
+                content = '<div class="msg-reply-ref">↩ "' + escapeHtml(msg.replyTo.substring(0, 40)) + '"</div>' + content;
+            }
+
+            html += '<div class="msg-row ' + (isAdmin ? 'right' : 'left') + '" id="msg-' + msg.key + '">' +
+                '<div class="msg-bubble ' + (isAdmin ? 'msg-admin' : 'msg-user') + '" onclick="showAdminChatDetail(\'' + msg.key + '\')">' +
                 content +
                 '<div class="msg-meta">' +
                 '<span class="msg-time">' + msg.time + '</span>' +
                 (isAdmin ? '<span class="msg-tick">✓✓</span>' : '') +
                 '</div>' +
+                '</div>' +
+                '<div class="msg-actions">' +
+                '<button class="mini-btn" title="Reply" onclick="event.stopPropagation(); adminReplyMessage(\'' + msg.key + '\')">↩</button>' +
+                '<button class="mini-btn" title="Edit" onclick="event.stopPropagation(); adminEditMessage(\'' + msg.key + '\')">✎</button>' +
+                '<button class="mini-btn" title="Copy" onclick="event.stopPropagation(); adminCopyMessage(\'' + msg.key + '\')">⎘</button>' +
+                '<button class="mini-btn del" title="Delete" onclick="event.stopPropagation(); adminDeleteMessage(\'' + msg.key + '\')">✕</button>' +
                 '</div>' +
                 '</div>';
         });
@@ -338,15 +349,26 @@ function adminSendMessage() {
     const text = input.value.trim();
     if (!text) return;
 
-    db.ref('chats').push({
+    const chatData = {
         text: text,
         sender: 'admin',
         date: new Date().toLocaleDateString('en-GB'),
         time: new Date().toLocaleTimeString('en-GB'),
         createdAt: Date.now()
-    });
+    };
+
+    const replyTo = document.getElementById('adminChatInput').placeholder;
+    if (replyTo && replyTo.startsWith('Replying to:')) {
+        chatData.replyTo = replyTo.replace('Replying to: ', '').replace('..."', '');
+    }
+
+    db.ref('chats').push(chatData);
 
     input.value = '';
+    input.placeholder = 'Type a message...';
+
+    showTypingIndicator();
+    setTimeout(hideTypingIndicator, 1500);
 }
 
 function adminSendImage() {
@@ -367,6 +389,124 @@ function adminSendImage() {
         input.value = '';
     };
     reader.readAsDataURL(file);
+
+    showTypingIndicator();
+    setTimeout(hideTypingIndicator, 1500);
+}
+
+function adminReplyMessage(key) {
+    const msg = document.getElementById('msg-' + key);
+    if (!msg) return;
+    const textEl = msg.querySelector('.msg-text');
+    const text = textEl ? textEl.textContent : '';
+    const input = document.getElementById('adminChatInput');
+    input.placeholder = 'Replying to: "' + text.substring(0, 25) + '..."';
+    input.focus();
+}
+
+function adminEditMessage(key) {
+    const chatData = { key: key };
+    const box = document.getElementById('adminChatMessages');
+    const msgBubble = document.querySelector('#msg-' + key + ' .msg-text');
+    const text = msgBubble ? msgBubble.textContent : '';
+    document.getElementById('editInput').value = text;
+    document.getElementById('editPopup').classList.add('active');
+    document.getElementById('editInput').focus();
+    window._editingKey = key;
+}
+
+function adminSaveEdit() {
+    const newText = document.getElementById('editInput').value.trim();
+    if (!newText || !window._editingKey) return;
+    db.ref('chats/' + window._editingKey).update({
+        text: newText,
+        date: new Date().toLocaleDateString('en-GB'),
+        time: new Date().toLocaleTimeString('en-GB')
+    });
+    adminCloseEditPopup();
+}
+
+function adminCloseEditPopup() {
+    document.getElementById('editPopup').classList.remove('active');
+    window._editingKey = null;
+}
+
+function adminCopyMessage(key) {
+    const msgBubble = document.querySelector('#msg-' + key + ' .msg-text');
+    const text = msgBubble ? msgBubble.textContent : '';
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function () {
+            alert('Message copied!');
+        });
+    } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        alert('Message copied!');
+    }
+}
+
+function adminDeleteMessage(key) {
+    if (!confirm('Delete this message?')) return;
+    db.ref('chats/' + key).remove();
+}
+
+function showAdminChatDetail(key) {
+    const box = document.getElementById('adminChatMessages');
+    const messages = [];
+    db.ref('chats').once('value').then(function (snapshot) {
+        snapshot.forEach(function (child) {
+            const data = child.val();
+            data.key = child.key;
+            messages.push(data);
+        });
+        const msg = messages.find(function (m) { return m.key === key; });
+        if (!msg) return;
+
+        const isAdmin = msg.sender === 'admin';
+        let html = '';
+        html += '<div class="chat-detail-row"><strong>Message:</strong> ' + (msg.text ? escapeHtml(msg.text) : (msg.fileName || msg.image ? 'Attachment' : '-')) + '</div>';
+        html += '<div class="chat-detail-row"><strong>From:</strong> ' + (isAdmin ? 'You (Admin)' : 'User') + '</div>';
+        if (msg.fileName) {
+            html += '<div class="chat-detail-row"><strong>File:</strong> ' + escapeHtml(msg.fileName) + '</div>';
+            if (msg.fileSize) html += '<div class="chat-detail-row"><strong>Size:</strong> ' + msg.fileSize + '</div>';
+        }
+        if (msg.replyTo) {
+            html += '<div class="chat-detail-row"><strong>Reply To:</strong> ' + escapeHtml(msg.replyTo) + '</div>';
+        }
+        html += '<div class="chat-detail-row"><strong>Date:</strong> ' + msg.date + '</div>';
+        html += '<div class="chat-detail-row"><strong>Time:</strong> ' + msg.time + '</div>';
+        html += '<div class="chat-detail-row"><strong>Full:</strong> ' + msg.date + ' ' + msg.time + '</div>';
+
+        document.getElementById('chatDetailContent').innerHTML = html;
+        document.getElementById('chatDetailPopup').classList.add('active');
+    });
+}
+
+function adminCloseChatDetail() {
+    document.getElementById('chatDetailPopup').classList.remove('active');
+}
+
+function adminViewImage(src) {
+    document.getElementById('viewImage').src = src;
+    document.getElementById('imgViewer').classList.add('active');
+}
+
+function adminCloseImageView() {
+    document.getElementById('imgViewer').classList.remove('active');
+}
+
+function showTypingIndicator() {
+    const t = document.getElementById('typingIndicator');
+    if (t) t.style.display = 'flex';
+}
+
+function hideTypingIndicator() {
+    const t = document.getElementById('typingIndicator');
+    if (t) t.style.display = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
