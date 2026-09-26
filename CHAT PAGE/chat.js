@@ -265,6 +265,34 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ====== CHAT INFO POPUP ======
+function openChatInfo() {
+    document.getElementById('chatInfoPopup').classList.add('active');
+}
+
+function closeChatInfo() {
+    document.getElementById('chatInfoPopup').classList.remove('active');
+}
+
+function openChatMedia() {
+    closeChatInfo();
+    alert('Media & Files feature coming soon!');
+}
+
+function openChatSearch() {
+    closeChatInfo();
+    alert('Search feature coming soon!');
+}
+
+function clearChatHistory() {
+    if (confirm('Clear all chat history? This cannot be undone.')) {
+        db.ref('chats').remove().then(function () {
+            alert('Chat history cleared!');
+        });
+    }
+    closeChatInfo();
+}
+
 // ====== IMAGE VIEWER ======
 function openImageViewer(src, fileName) {
     const viewer = document.getElementById('imageViewer');
@@ -286,7 +314,6 @@ function closeImageViewer() {
     const img = document.getElementById('imageViewerImg');
     viewer.classList.remove('active');
     document.body.style.overflow = '';
-    // Clear src after animation to free memory
     setTimeout(() => { img.src = ''; }, 300);
 }
 
@@ -297,6 +324,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             closeImageViewer();
+            closeChatInfo();
         }
     });
 });
