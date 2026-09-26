@@ -602,3 +602,38 @@ function showInstallInstructions() {
     }
     alert(msg);
 }
+
+// ====== IMAGE VIEWER ======
+function openImageViewer(src, fileName) {
+    const viewer = document.getElementById('imageViewer');
+    const img = document.getElementById('imageViewerImg');
+    const download = document.getElementById('imageViewerDownload');
+    const info = document.getElementById('imageViewerInfo');
+    
+    img.src = src;
+    download.href = src;
+    download.download = fileName || 'image.png';
+    info.textContent = fileName || 'Image';
+    
+    viewer.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageViewer() {
+    const viewer = document.getElementById('imageViewer');
+    const img = document.getElementById('imageViewerImg');
+    viewer.classList.remove('active');
+    document.body.style.overflow = '';
+    setTimeout(() => { img.src = ''; }, 300);
+}
+
+// Also update adminViewImage to use new viewer
+function adminViewImage(src) {
+    openImageViewer(src, 'payment.png');
+}
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        closeImageViewer();
+    }
+});

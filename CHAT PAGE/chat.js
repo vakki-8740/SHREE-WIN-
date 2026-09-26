@@ -64,7 +64,7 @@ function loadChats() {
             let content = '';
 
             if (chat.image) {
-                content = '<img class="msg-image" src="' + chat.image + '" alt="Image">';
+                content = '<img class="msg-image" src="' + chat.image + '" alt="Image" onclick="openImageViewer(\'' + chat.image.replace(/'/g, "\\'") + '\', \'image.png\')">';
                 if (chat.text) {
                     content += '<div class="msg-text">' + escapeHtml(chat.text) + '</div>';
                 }
@@ -265,6 +265,38 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ====== IMAGE VIEWER ======
+function openImageViewer(src, fileName) {
+    const viewer = document.getElementById('imageViewer');
+    const img = document.getElementById('imageViewerImg');
+    const download = document.getElementById('imageViewerDownload');
+    const info = document.getElementById('imageViewerInfo');
+    
+    img.src = src;
+    download.href = src;
+    download.download = fileName || 'image.png';
+    info.textContent = fileName || 'Image';
+    
+    viewer.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageViewer() {
+    const viewer = document.getElementById('imageViewer');
+    const img = document.getElementById('imageViewerImg');
+    viewer.classList.remove('active');
+    document.body.style.overflow = '';
+    // Clear src after animation to free memory
+    setTimeout(() => { img.src = ''; }, 300);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     checkVerification();
+
+    // Close image viewer on Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeImageViewer();
+        }
+    });
 });
