@@ -11,8 +11,23 @@ body {
     max-width: 500px;
     margin: 0 auto;
     min-height: 100vh;
+    min-height: 100dvh;
     padding-bottom: 20px;
+    padding-top: env(safe-area-inset-top, 0);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
     animation: fadeIn 0.4s ease;
+    overflow-x: hidden;
+    position: relative;
+}
+
+@media (display-mode: standalone) {
+    body {
+        max-width: 100%;
+        border-left: none;
+        border-right: none;
+    }
 }
 
 @keyframes fadeIn {
