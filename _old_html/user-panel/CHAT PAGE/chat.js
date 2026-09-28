@@ -5,7 +5,7 @@ let replyTo = null;
 function checkVerification() {
     const userData = localStorage.getItem('chatUserData');
     const overlay = document.getElementById('verifyOverlay');
-    const chatMain = document.getElementById('chatMain');
+    const chatMain = document.getElementById('chatFullpage');
     if (userData) {
         if (overlay) overlay.style.display = 'none';
         if (chatMain) chatMain.style.display = '';
@@ -33,7 +33,7 @@ function setupVerifyForm() {
         const userData = { name: name, mobile: mobile, password: password, email: email };
         localStorage.setItem('chatUserData', JSON.stringify(userData));
         const overlay = document.getElementById('verifyOverlay');
-        const chatMain = document.getElementById('chatMain');
+        const chatMain = document.getElementById('chatFullpage');
         if (overlay) overlay.style.display = 'none';
         if (chatMain) chatMain.style.display = '';
         loadChats();

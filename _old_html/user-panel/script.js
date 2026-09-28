@@ -137,7 +137,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-        navigator.serviceWorker.register('service-worker.js').then(function (reg) {
+        const inSubFolder = /\/CHAT PAGE\//.test(decodeURIComponent(location.pathname));
+        const swUrl = inSubFolder ? '../service-worker.js' : 'service-worker.js';
+        navigator.serviceWorker.register(swUrl).then(function (reg) {
             console.log('SW registered:', reg.scope);
         }).catch(function (err) {
             console.log('SW registration failed:', err);

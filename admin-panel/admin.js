@@ -10,6 +10,16 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+const liveRefs = {};
+function liveListen(path, limit, callback, errorCb) {
+    const slot = path + '|' + (limit || 0);
+    if (liveRefs[slot]) liveRefs[slot].off();
+    let ref = db.ref(path);
+    if (limit) ref = ref.limitToLast(limit);
+    ref.on('value', callback, errorCb);
+    liveRefs[slot] = ref;
+}
+
 // HOME PAGE - optimized: load only latest 50, no images in list
 function loadHome() {
     console.log('ADMIN: loadHome called');
@@ -21,8 +31,8 @@ function loadHome() {
     // Show loading
     listEl.innerHTML = '<p class="no-users"><span class="loading-spinner"></span> Loading...</p>';
 
-    // Load only latest 50 for fast initial load
-    db.ref('complaints').limitToLast(50).once('value').then(function (snapshot) {
+    // Live: fires now, then again on every change - no refresh needed
+    liveListen('complaints', 50, function (snapshot) {
         const requests = [];
         snapshot.forEach(function (child) {
             const data = child.val();
@@ -88,7 +98,7 @@ function loadDetail() {
     const params = new URLSearchParams(window.location.search);
     const key = params.get('id');
 
-    db.ref('complaints/' + key).once('value').then(function (snapshot) {
+    liveListen('complaints/' + key, null, function (snapshot) {
         const req = snapshot.val();
 
         if (!req) {
@@ -223,7 +233,7 @@ function loadChatUsers() {
 
     listEl.innerHTML = '<p class="no-users"><span class="loading-spinner"></span> Loading...</p>';
 
-    db.ref('complaints').limitToLast(100).once('value').then(function (snapshot) {
+    liveListen('complaints', 100, function (snapshot) {
         const uniqueUsers = {};
         snapshot.forEach(function (child) {
             const r = child.val();
@@ -235,40 +245,32 @@ function loadChatUsers() {
 
         // Skip full chat scan - just use complaint times for last activity
         const allUsers = Object.values(uniqueUsers);
-                lastChatSender = msg.sender;
-            });
 
-            if (lastChatTime && !uniqueUsers['Guest User']) {
-                uniqueUsers['Guest User'] = { name: 'Guest User', lastTime: lastChatTime, lastDate: '' };
-            }
+        if (allUsers.length === 0) {
+            listEl.innerHTML = '<p class="no-users"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>No users yet.</p>';
+            return;
+        }
 
-            const allUsers = Object.values(uniqueUsers);
+        let html = '';
+        allUsers.forEach(function (user, index) {
+            const isOnline = index % 2 === 0;
+            const statusHtml = isOnline
+                ? '<span class="status-dot online"></span> Online'
+                : '<span class="status-dot offline"></span> Offline';
+            html += '<a class="chat-user-card" href="chatroom.html?user=' + encodeURIComponent(user.name) + '">' +
+                '<div class="chat-user-icon">' +
+                '<img src="icons/user.png" alt="User" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+                '<svg style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>' +
+                '</div>' +
+                '<div class="chat-user-info">' +
+                '<span class="chat-user-name">' + escapeHtml(user.name) + '</span>' +
+                '<span class="chat-user-status">' + statusHtml + '</span>' +
+                '</div>' +
+                '<span class="chat-user-time">' + user.lastTime + '</span>' +
+                '</a>';
+        });
 
-            if (allUsers.length === 0) {
-                listEl.innerHTML = '<p class="no-users"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>No users yet.</p>';
-                return;
-            }
-
-            let html = '';
-            allUsers.forEach(function (user, index) {
-                const isOnline = index % 2 === 0;
-                const statusHtml = isOnline
-                    ? '<span class="status-dot online"></span> Online'
-                    : '<span class="status-dot offline"></span> Offline';
-                html += '<a class="chat-user-card" href="chatroom.html?user=' + encodeURIComponent(user.name) + '">' +
-                    '<div class="chat-user-icon">' +
-                    '<img src="icons/user.png" alt="User" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
-                    '<svg style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>' +
-                    '</div>' +
-                    '<div class="chat-user-info">' +
-                    '<span class="chat-user-name">' + escapeHtml(user.name) + '</span>' +
-                    '<span class="chat-user-status">' + statusHtml + '</span>' +
-                    '</div>' +
-                    '<span class="chat-user-time">' + user.lastTime + '</span>' +
-                    '</a>';
-            });
-
-            listEl.innerHTML = html;
+        listEl.innerHTML = html;
     }).catch(function (error) {
         console.error('ADMIN loadChatUsers error:', error);
         if (listEl) {
@@ -308,7 +310,7 @@ function loadAdminMessages() {
 
     box.innerHTML = '<div class="chat-welcome"><span class="loading-spinner"></span> Loading...</div>';
 
-    db.ref('chats').limitToLast(30).once('value').then(function (snapshot) {
+    liveListen('chats', 30, function (snapshot) {
         const messages = [];
         snapshot.forEach(function (child) {
             const data = child.val();
@@ -479,15 +481,10 @@ function adminDeleteMessage(key) {
 }
 
 function showAdminChatDetail(key) {
-    const box = document.getElementById('adminChatMessages');
-    const messages = [];
-    db.ref('chats').once('value').then(function (snapshot) {
-        snapshot.forEach(function (child) {
-            const data = child.val();
-            data.key = child.key;
-            messages.push(data);
-        });
-        const msg = messages.find(function (m) { return m.key === key; });
+    // Read only the one message - fetching the whole chats node pulled every
+    // base64 image in the room on each tap.
+    db.ref('chats/' + key).once('value').then(function (snapshot) {
+        const msg = snapshot.val();
         if (!msg) return;
 
         const isAdmin = msg.sender === 'admin';

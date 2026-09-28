@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#9C8DE8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="SHREE WIN">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="project-logo.png">
+    <title>CHAT ROOM - ADMIN</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="admin-header">
+    <a href="chat.html" class="back-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </a>
+    <div class="chat-room-header-info">
+        <div class="chat-room-avatar" id="roomAvatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </div>
+        <div class="chat-room-details">
+            <h1 id="roomName">User</h1>
+            <span class="room-status" id="roomStatus">● Online</span>
+        </div>
+    </div>
+    <button class="install-btn" id="installBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Install
+    </button>
+</div>
+
+    <!-- MESSAGES -->
+    <div class="admin-chat-messages" id="adminChatMessages">
+        <div class="chat-welcome">
+            <p>Start chatting with the user</p>
+        </div>
+    </div>
+
+    <!-- TYPING INDICATOR -->
+    <div class="typing-indicator" id="typingIndicator" style="display:none">
+        <span></span><span></span><span></span>
+    </div>
+
+    <!-- EDIT POPUP -->
+    <div class="edit-popup" id="editPopup">
+        <div class="edit-popup-box">
+            <h3>EDIT MESSAGE</h3>
+            <input type="text" id="editInput" placeholder="Edit your message...">
+            <div class="popup-actions">
+                <button class="btn btn-save" onclick="adminSaveEdit()">Save</button>
+                <button class="btn btn-cancel" onclick="adminCloseEditPopup()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHAT DETAIL POPUP -->
+    <div class="chat-detail-popup" id="chatDetailPopup">
+        <div class="chat-detail-box">
+            <h3>MESSAGE DETAILS</h3>
+            <div id="chatDetailContent"></div>
+            <div class="chat-detail-actions">
+                <button class="btn" onclick="adminCloseChatDetail()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMAGE VIEWER -->
+    <div class="image-viewer-overlay" id="imageViewer" onclick="closeImageViewer()">
+        <span class="image-viewer-close" onclick="event.stopPropagation(); closeImageViewer()">✕</span>
+        <div class="image-viewer-toolbar">
+            <span class="image-viewer-info" id="imageViewerInfo"></span>
+            <a class="image-viewer-download" id="imageViewerDownload" download>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </a>
+        </div>
+        <img id="imageViewerImg" src="" alt="Fullscreen image">
+    </div>
+
+    <!-- INPUT -->
+    <div class="admin-chat-input-bar">
+        <label class="input-action-btn" title="Send Image">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            <input type="file" id="adminImageInput" accept="image/*" onchange="adminSendImage()" style="display:none">
+        </label>
+        <input type="text" id="adminChatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter')adminSendMessage()">
+        <button class="send-btn" onclick="adminSendMessage()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

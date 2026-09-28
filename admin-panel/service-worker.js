@@ -1,13 +1,14 @@
-const CACHE_NAME = 'shree-win-v1';
+const CACHE_NAME = 'shree-win-admin-v2';
 const urlsToCache = [
-    '/',
-    '/ADMIN PANEL/index.html',
-    '/ADMIN PANEL/admin.css',
-    '/ADMIN PANEL/admin.js',
-    '/style.css',
-    '/script.js',
-    '/firebase-config.js',
-    '/LOGO/images__1_-removebg-preview.png'
+    './',
+    './index.html',
+    './request.html',
+    './chat.html',
+    './chatroom.html',
+    './admin.css',
+    './admin.js',
+    './manifest.json',
+    './project-logo.png'
 ];
 
 self.addEventListener('install', function (event) {
@@ -19,6 +20,7 @@ self.addEventListener('install', function (event) {
 });
 
 self.addEventListener('fetch', function (event) {
+    if (event.request.method !== 'GET') return;
     event.respondWith(
         caches.match(event.request).then(function (response) {
             return response || fetch(event.request);
